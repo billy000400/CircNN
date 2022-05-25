@@ -17,7 +17,7 @@ def plot_in_RAM(hit_dict, resolution):
     fig = Figure(figsize=(8,8), dpi=resolution/8, frameon=False, tight_layout=layout)
     canvas = FigureCanvas(fig)
     ax = fig.subplots()
-    ax.scatter(xs, ys, c='b', s=1)
+    ax.scatter(xs, ys, c='k', s=1)
     ax.set_aspect('equal', adjustable='datalim')
     ax.set_axis_off()
     ax.set_xlim([-810, 810])
