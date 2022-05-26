@@ -17,7 +17,7 @@ def plot_in_RAM(hit_dict, resolution):
     fig = Figure(figsize=(8,8), dpi=resolution/8, frameon=False, tight_layout=layout)
     canvas = FigureCanvas(fig)
     ax = fig.subplots()
-    ax.scatter(xs, ys, c='k', s=1)
+    ax.scatter(xs, ys, c='b', s=1)
     ax.set_aspect('equal', adjustable='datalim')
     ax.set_axis_off()
     ax.set_xlim([-810, 810])
@@ -26,4 +26,5 @@ def plot_in_RAM(hit_dict, resolution):
     canvas.draw()
     # grab the pixel buffer and dump it into a numpy array
     x = np.array(canvas.renderer.buffer_rgba())
+    x = np.rint(x[...,:3] @ [0.2126, 0.7152, 0.0722]).astype(np.uint8)
     return np.array([x/255.0], dtype=np.float32)
