@@ -5,12 +5,11 @@ import numpy as np
 import pandas as pd
 from scipy.stats import uniform
 
-vis_dir = Path.cwd().parent.joinpath('visualization')
-sys.path.insert(1, str(vis_dir))
+data_dir = Path.cwd().parent.joinpath("data")
+sys.path.insert(1, str(data_dir))
 
 from hit_generator import stochastic
-from plot import plot_in_RAM
-from util import small_helix_check
+from util import plot_in_RAM, small_helix_check
 
 def make_data_single_track():
 
