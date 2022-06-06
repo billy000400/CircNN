@@ -1,3 +1,11 @@
+# @Author: Billy Li <billyli>
+# @Date:   06-05-2022
+# @Email:  li000400@umn.edu
+# @Last modified by:   billyli
+# @Last modified time: 06-05-2022
+
+
+
 import sys
 from pathlib import Path
 
@@ -11,6 +19,27 @@ sys.path.insert(1, str(data_dir))
 from hit_generator import stochastic
 from util import plot_in_RAM, small_helix_check
 
+def discretize(x, min, max, res):
+    # return the discretized index of a value given a range and resolution
+    step = (max-min)/res
+    result = (x-min)//step
+    if result >= res:
+        result = res-1
+    return int(result)
+
+def xy2map(xs, ys, res):
+    # return a z-t ptcl number map
+    map = np.zeros(shape=(res,res), dtype=float)
+    xmin, xmax = -810, 810
+    ymin, ymax = -810, 810
+
+    for x, y in zip(xs, ys):
+        xIdx = discretize(x, xmin, xmax, res)
+        yIdx = discretize(y, ymin, ymax, res)
+        map[res-1-yIdx, xIdx] = 1.0
+
+    return map
+
 def make_data_single_track():
 
     ### set dataset property
@@ -20,7 +49,7 @@ def make_data_single_track():
     # quality cut
     dx_min = 100
     dy_min = 100
-    res = 128
+    res = 256
 
 
 
@@ -40,11 +69,11 @@ def make_data_single_track():
 
 
     while N_generated < N_data:
-        hits = gen.generate(mode='production')
+        hit_dict = gen.generate(mode='production')
         if small_helix_check(hits,dx_min=dx_min,dy_min=dy_min):
             continue
         else:
-            x = plot_in_RAM(hits, res)
+            x = plot_in_RAM(hit_dict, res)
             x = x.reshape(res,res,4)
             plt.imshow(x)
             plt.show()
