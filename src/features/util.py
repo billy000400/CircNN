@@ -1,3 +1,11 @@
+# @Author: Billy Li <billyli>
+# @Date:   06-05-2022
+# @Email:  li000400@umn.edu
+# @Last modified by:   billyli
+# @Last modified time: 06-05-2022
+
+
+
 import numpy as np
 import pandas as pd
 
@@ -46,7 +54,6 @@ def plot_in_RAM(hit_dict, resolution):
     return np.array([x/255.0], dtype=np.float32)
 
 def hits2arc(hit_dict):
-    print("Arc Fitting")
     hits = [ it for k, it in hit_dict.items()]
     xs = []
     ys = []
@@ -62,23 +69,27 @@ def hits2arc(hit_dict):
     R = 100
 
     # https://math.stackexchange.com/questions/2898295/how-to-quickly-fit-a-circle-by-given-random-arc-points
-    print("assembling vec")
     vec = [np.sum(xs*xs*xs)+np.sum(xs*ys*ys),\
             np.sum(ys*ys*ys)+np.sum(xs*xs*ys),\
             np.sum(xs*xs)+np.sum(ys*ys)]
     vec = np.array(vec)
-    print(vec.shape)
-    print("assembling matrix")
+
     matrix = [[2*np.sum(xs*xs), 2*np.sum(xs*ys), np.sum(xs)],\
                 [2*np.sum(xs*ys), 2*np.sum(ys*ys), np.sum(ys)],\
                 [2*np.sum(xs), 2*np.sum(ys), n]]
     matrix = np.array(matrix)
     matrix_inv = np.linalg.inv(matrix)
-    print(matrix_inv.shape)
-    print("multiplication")
+
     [a, b, _] = matrix_inv.dot(vec)
-    print("calculating c")
     c = (np.sum(xs*xs)+np.sum(ys*ys)-2*a*sum(xs)-2*b*sum(ys))/n
-    print("calculating R")
+
     R = np.sqrt(c+a*a+b*b)
+
+    thetas = []
+    for x, y in zip(xs,ys):
+        dx = x-a
+        dy = y-b
+        theta = np.arctan2(dy,dx) * 180 / np.pi
+        thetas.append(theta)
+
     return a, b, R
