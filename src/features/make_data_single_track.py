@@ -2,22 +2,23 @@
 # @Date:   06-05-2022
 # @Email:  li000400@umn.edu
 # @Last modified by:   billyli
-# @Last modified time: 06-05-2022
+# @Last modified time: 06-06-2022
 
 
 
 import sys
 from pathlib import Path
+import shutil
 
 import numpy as np
-import pandas as pd
 from scipy.stats import uniform
 
 data_dir = Path.cwd().parent.joinpath("data")
 sys.path.insert(1, str(data_dir))
 
 from hit_generator import stochastic
-from util import plot_in_RAM, small_helix_check
+from util import plot_in_RAM, small_helix_check, hits2arc
+from information import *
 
 def discretize(x, min, max, res):
     # return the discretized index of a value given a range and resolution
@@ -40,7 +41,10 @@ def xy2map(xs, ys, res):
 
     return map
 
-def make_data_single_track():
+# feature_dir_default =
+def make_data_single_track(feature_dir):
+
+    feature_dir.mkdir(parents=True, exist_ok=True)
 
     ### set dataset property
     # Number of samples
@@ -51,11 +55,8 @@ def make_data_single_track():
     dy_min = 100
     res = 256
 
-
-
-
     # set track source (db files)
-    track_dir = Path.cwd().parent.joinpath('data').joinpath('raw')
+    track_dir = Path.cwd().parent.parent.joinpath('data').joinpath('raw')
     db_list = ["train_CeEndpoint-mix-fromCSV_1.db",
                "train_CeEndpoint-mix-fromCSV_2.db",\
                "train_CeEndpoint-mix-fromCSV_3.db"]
@@ -67,20 +68,38 @@ def make_data_single_track():
     # set track generator
     gen = stochastic(dist=dist, db_files=file_list, hitNumCut=20)
 
-
+    X = []
+    Y = []
     while N_generated < N_data:
         hit_dict = gen.generate(mode='production')
-        if small_helix_check(hits,dx_min=dx_min,dy_min=dy_min):
+        if small_helix_check(hit_dict,dx_min=dx_min,dy_min=dy_min):
             continue
         else:
+            sys.stdout.write(t_info(f'Finding qualified track: {N_generated+1}/{N_data}', special='\r'))
+            if N_generated+1 == N_data:
+                sys.stdout.write('\n')
+            sys.stdout.flush()
+
             x = plot_in_RAM(hit_dict, res)
-            x = x.reshape(res,res,4)
-            plt.imshow(x)
-            plt.show()
+            x = x.reshape(res,res)
+            X.append(x)
+
+            a, b, R = hits2arc(hit_dict)
+            y = xy2map([a], [b], int(res/8))
             N_generated += 1
+            Y.append(y)
+
+    X = np.array(X)
+    Y = np.array(Y)
+
+    X_file = feature_dir.joinpath("X.npy")
+    Y_file = feature_dir.joinpath("Y.npy")
+    np.save(X_file, X)
+    np.save(Y_file, Y)
 
     return
 
 if __name__ == "__main__":
-    make_data_single_track()
-    return
+    data_dir = Path.cwd().parent.parent.joinpath("data")
+    feature_dir = data_dir.joinpath("interm").joinpath("single_track")
+    make_data_single_track(feature_dir)
